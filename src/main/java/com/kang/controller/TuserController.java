@@ -5,13 +5,16 @@ import com.kang.domain.TUser;
 import com.kang.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/user")
 public class TuserController {
     @Autowired
     private UserService userService;
@@ -22,7 +25,12 @@ public class TuserController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody TUser tUser){
+    public String register(@RequestParam("username") String username,
+                           @RequestParam("password") String password) {
+        TUser tUser = new TUser();
+        tUser.setUserPassword(password);
+        tUser.setUserName(username);
+
        int status = userService.register(tUser);
        if(status == -1){
            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"用户已存在",new Exception());
@@ -30,8 +38,16 @@ public class TuserController {
        return "注册成功";
     }
 
-    @PostMapping("/login")
-    public void login(@RequestBody TUser tUser){
+    @PostMapping("/doLogin")
+    public ModelAndView login(@RequestParam("username") String username,
+                              @RequestParam("userpassword") String password, Model model) {
+
+        System.out.println("username:" + username + ",userpassword:" + password);
+
+        TUser tUser = new TUser();
+        tUser.setUserName(username);
+        tUser.setUserPassword(password);
+
         int status = userService.login(tUser);
         if(status == 0){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "密码错误", new Exception());
@@ -39,8 +55,9 @@ public class TuserController {
             throw  new ResponseStatusException(HttpStatus.NOT_FOUND, "用户不存在", new Exception());
         }else if(status == 1){
             System.out.println("登录成功");
-            return;
+
         }
+        return new ModelAndView("login1", "userModel", model);
     }
 
 
@@ -113,6 +130,43 @@ public class TuserController {
         } else if (status == 0)
             throw new  ResponseStatusException(HttpStatus.BAD_REQUEST,"转账金额异常！",new Exception());
         return "转账成功";
+    }
+
+
+//    /**
+//     * 获取 form 表单页面
+//     * @return
+//     */
+//    @GetMapping("/login")
+//    public ModelAndView createForm(Model model) {
+//        return new ModelAndView("login1", "userModel", model);
+//    }
+
+    @RequestMapping("/login")
+    public ModelAndView showLogin(Model model) {
+        return new ModelAndView("login", "userModel", model);
+    }
+
+    @RequestMapping("/admin")
+    @ResponseBody
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public String printAdmin() {
+        return "如果你看见这句话，说明你有ROLE_ADMIN角色";
+    }
+
+    @RequestMapping("/user")
+    @ResponseBody
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public String printUser() {
+        return "如果你看见这句话，说明你有ROLE_USER角色";
+    }
+
+    @RequestMapping("/")
+    public ModelAndView showHome(Model model) {
+        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("当前登陆用户：" + name);
+
+        return new ModelAndView("home", "userModel", model);
     }
 
 

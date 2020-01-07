@@ -1,21 +1,20 @@
 package com.kang.service;
 
-import com.kang.controller.TuserController;
 import com.kang.dao.TUserDAO;
 import com.kang.domain.TUser;
-import com.kang.exception.InvalidDepositException;
+import com.kang.domain.UserRole;
 import com.kang.utils.MD5Utils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
 public class UserService {
     @Autowired
     private TUserDAO tUserDao;
+    @Autowired
+    private UserRoleService userRoleService;
 
 
     /**
@@ -23,6 +22,10 @@ public class UserService {
      */
     public TUser selectTuserById(int id) {
         return tUserDao.selectByPrimaryKey(id);
+    }
+
+    public TUser selectTuserByName(String username) {
+        return tUserDao.selectTuserByName(username);
     }
 
     /**
@@ -65,6 +68,14 @@ public class UserService {
         tUser.setUserFlag(0);
 
         tUserDao.insert(tUser);
+
+        //添加user权限
+        int userId = tUserDao.selectTuserByName(tUser.getUserName()).getUserId();
+        UserRole userRole = new UserRole();
+        userRole.setUserId(userId);
+        userRole.setRoleId(2);
+        userRoleService.insert(userRole);
+
         return 1;
     }
     /**

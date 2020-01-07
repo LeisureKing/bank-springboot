@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>注册</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="css/register.css">
+</head>
+
+<body>
+<form class="box login" action="/register" method="post">
+    <fieldset class="boxBody">
+        <label>用户名</label>
+        <input type="text" tabindex="1" name="username" required>
+        <label>密码</label>
+        <input type="password" tabindex="3" name="password" id="password" onchange="checkPasswords()" required>
+        <label>确认密码</label>
+        <input type="password" tabindex="4" name="repassword" id="repassword" onchange="checkPasswords()" required>
+    </fieldset>
+    <footer>
+        <input type="submit" class="btnLogin" onclick="check()" value="注册" tabindex="5">
+    </footer>
+    <p class="register">已经注册？<a href="../templates/login3.html">点我登录</a></p>
+</form>
+
+<script type="text/javascript">
+    function check() {
+        var pass1 = document.getElementById("password");
+        var pass2 = document.getElementById("repassword");
+
+        if (pass1.value != pass2.value)
+            pass2.setCustomValidity("两次输入的密码不匹配");
+        else
+            pass2.setCustomValidity("");
+    }
+</script>
+</body>
+</html>
